@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import typing
 
 import httpx
@@ -11,18 +12,32 @@ def _patch_forward_ref_evaluation() -> None:
 
     if "recursive_guard" in typing.ForwardRef._evaluate.__code__.co_varnames:  # type: ignore[attr-defined]
         _orig_eval = typing.ForwardRef._evaluate  # type: ignore[attr-defined]
+        orig_params = inspect.signature(_orig_eval).parameters
 
         def _patched_evaluate(
             self, globalns, localns, type_params=None, recursive_guard=None, **kwargs
         ):  # type: ignore[override]
+            """Bridge signature differences without passing unsupported kwargs."""
+
             guard = (
                 recursive_guard
                 if recursive_guard is not None
                 else kwargs.pop("recursive_guard", set())
             )
-            if type_params is not None:
+
+            # Only forward type_params when the wrapped implementation accepts it.
+            if type_params is not None and "type_params" in orig_params:
                 kwargs["type_params"] = type_params
-            return _orig_eval(self, globalns, localns, recursive_guard=guard, **kwargs)
+
+            # Ensure we do not pass unexpected keywords to the underlying implementation.
+            safe_kwargs = kwargs if "type_params" in orig_params else {}
+            return _orig_eval(
+                self,
+                globalns,
+                localns,
+                recursive_guard=guard,
+                **safe_kwargs,
+            )
 
         typing.ForwardRef._evaluate = _patched_evaluate  # type: ignore[assignment]
 
