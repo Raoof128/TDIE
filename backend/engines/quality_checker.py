@@ -52,7 +52,9 @@ def detect_duplicates(records: list[dict[str, Any]]) -> tuple[int, list[str]]:
 def detect_outliers(records: list[dict[str, Any]], numeric_fields: list[str]) -> list[str]:
     issues: list[str] = []
     for field in numeric_fields:
-        values = [float(r[field]) for r in records if field in r and isinstance(r[field], (int | float))]
+        values = [
+            float(r[field]) for r in records if field in r and isinstance(r[field], (int | float))
+        ]
         if len(values) < 4:
             continue
         q1, q3 = percentile(values, 25), percentile(values, 75)

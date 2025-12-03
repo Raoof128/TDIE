@@ -52,7 +52,10 @@ For local development with linters and formatters:
 pip install -r requirements-dev.txt
 make lint  # ruff + black checks
 make test  # pytest suite
+make ci    # run lint + test like CI
 ```
+
+CI details live in [docs/ci_cd.md](docs/ci_cd.md) and run on Python 3.11 and 3.12 with pip caching for faster feedback.
 
 ## API Endpoints
 | Method | Path | Purpose |

@@ -15,7 +15,11 @@ def _patch_forward_ref_evaluation() -> None:
         def _patched_evaluate(
             self, globalns, localns, type_params=None, recursive_guard=None, **kwargs
         ):  # type: ignore[override]
-            guard = recursive_guard if recursive_guard is not None else kwargs.pop("recursive_guard", set())
+            guard = (
+                recursive_guard
+                if recursive_guard is not None
+                else kwargs.pop("recursive_guard", set())
+            )
             if type_params is not None:
                 kwargs["type_params"] = type_params
             return _orig_eval(self, globalns, localns, recursive_guard=guard, **kwargs)
@@ -35,9 +39,7 @@ async def client() -> typing.AsyncIterator[httpx.AsyncClient]:
     """Provide an HTTPX async client backed by the FastAPI ASGI app."""
 
     transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(
-        transport=transport, base_url="http://testserver"
-    ) as test_client:
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as test_client:
         yield test_client
 
 
